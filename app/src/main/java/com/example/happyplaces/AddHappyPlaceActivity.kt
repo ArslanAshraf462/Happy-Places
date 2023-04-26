@@ -1,15 +1,18 @@
 package com.example.happyplaces
 
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
@@ -69,17 +72,39 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
                     dialog, which ->
                     when(which){
                         0 -> choosePhotoFromGallery()
-                        1 -> Toast.makeText(
-                            this@AddHappyPlaceActivity,
-                            "Camera selection coming soon...",
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
+                        1 -> takePhotoFromCamera()
                     }
                 }
                 pickerDialog.show()
             }
         }
+    }
+    private fun takePhotoFromCamera() {
+
+        Dexter.withActivity(this)
+            .withPermissions(
+
+                android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                android.Manifest.permission.CAMERA
+            )
+            .withListener(object : MultiplePermissionsListener {
+                override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                    // Here after all the permission are granted launch the CAMERA to capture an image.
+                    if (report!!.areAllPermissionsGranted()) {
+                        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                        startActivityForResult(intent, CAMERA)
+                    }
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    permissions: MutableList<PermissionRequest>?,
+                    token: PermissionToken?
+                ) {
+                    showRationalDialogForPermissions()
+                }
+            }).onSameThread()
+            .check()
     }
 
     private fun choosePhotoFromGallery(){
@@ -106,24 +131,31 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(resultCode == Activity.RESULT_OK){
-            if (resultCode == GALLERY){
-                if (data != null){
+        val ivPlaceImage : ImageView = findViewById(R.id.iv_place_image)
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == GALLERY) {
+                if (data != null) {
                     val contentURI = data.data
                     try {
-                        val selectedImageBitmap = MediaStore.Images.Media.getBitmap(this.contentResolver,contentURI)
-                        val ivPlaceImage : ImageView = findViewById(R.id.iv_place_image)
-                        ivPlaceImage.setImageBitmap(selectedImageBitmap)
-                    }catch (e: IOException){
+                        // Here this is used to get an bitmap from URI
+                        @Suppress("DEPRECATION")
+                        val selectedImageBitmap =
+                            MediaStore.Images.Media.getBitmap(this.contentResolver, contentURI)
+
+                        ivPlaceImage.setImageBitmap(selectedImageBitmap) // Set the selected image from GALLERY to imageView.
+                    } catch (e: IOException) {
                         e.printStackTrace()
-                        Toast.makeText(
-                            this@AddHappyPlaceActivity,
-                            "Failed to load image from gallery!",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this@AddHappyPlaceActivity, "Failed!", Toast.LENGTH_SHORT).show()
                     }
                 }
+
+            } else if (requestCode == CAMERA) {
+
+                val thumbnail: Bitmap = data!!.extras!!.get("data") as Bitmap // Bitmap from camera
+                ivPlaceImage.setImageBitmap(thumbnail) // Set to the imageView.
             }
+        } else if (resultCode == Activity.RESULT_CANCELED) {
+            Log.e("Cancelled", "Cancelled")
         }
     }
 
@@ -158,5 +190,6 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
 
     companion object {
         private const val GALLERY = 1
+        private const val CAMERA = 2
     }
 }

@@ -1,5 +1,6 @@
 package com.example.happyplaces.activities
 
+import android.app.Activity
 import android.content.Intent
 import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
@@ -25,7 +26,7 @@ class MainActivity : AppCompatActivity() {
         val fabAddHappyPlace : FloatingActionButton = findViewById(R.id.fabAddHappyPlace)
         fabAddHappyPlace.setOnClickListener {
             val intent = Intent(this, AddHappyPlaceActivity::class.java)
-            startActivity(intent)
+            startActivityForResult(intent, ADD_PLACE_ACTIVITY_REQUEST_CODE)
         }
         getHappyPlacesListFromLocalDB()
     }
@@ -51,5 +52,20 @@ class MainActivity : AppCompatActivity() {
             rvHappyPlaceList?.visibility = View.GONE
             tvNoRecordAvailable?.visibility = View.VISIBLE
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == ADD_PLACE_ACTIVITY_REQUEST_CODE){
+            if (resultCode == Activity.RESULT_OK){
+                getHappyPlacesListFromLocalDB()
+            }else{
+                Log.e("Activity", "Cancelled or Back pressed")
+            }
+        }
+    }
+
+    companion object {
+        var ADD_PLACE_ACTIVITY_REQUEST_CODE = 1
     }
 }

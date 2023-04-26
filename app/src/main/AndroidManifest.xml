@@ -17,6 +17,14 @@
         android:theme="@style/Theme.HappyPlaces"
         tools:targetApi="31">
         <activity
+            android:name="im.dino.dbinspector.activities.DbInspectorActivity"
+            android:exported="true">
+            <intent-filter tools:node="removeAll">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".activities.AddHappyPlaceActivity"
             android:screenOrientation="portrait"
             android:label="ADD HAPPY PLACE"

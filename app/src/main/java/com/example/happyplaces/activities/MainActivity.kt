@@ -37,6 +37,13 @@ class MainActivity : AppCompatActivity() {
         rvHappyPlaceList?.setHasFixedSize(true)
         val placesAdapter = HappyPlacesAdapter(this,happyPlaceList)
         rvHappyPlaceList?.adapter = placesAdapter
+
+        placesAdapter.setOnClickListener(object :HappyPlacesAdapter.OnClickListener{
+            override fun onClick(position: Int, model: HappyPlaceModel) {
+                val intent = Intent(this@MainActivity,HappyPlaceDetailActivity::class.java)
+                startActivity(intent)
+            }
+        })
     }
     private fun getHappyPlacesListFromLocalDB(){
         tvNoRecordAvailable = findViewById(R.id.tv_no_record_available)

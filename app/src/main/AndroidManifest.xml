@@ -20,6 +20,7 @@
             android:name=".activities.HappyPlaceDetailActivity"
             android:screenOrientation="portrait"
             android:label="HAPPY PLACE DETAIL"
+            android:theme="@style/CustomNoActionBarTheme"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

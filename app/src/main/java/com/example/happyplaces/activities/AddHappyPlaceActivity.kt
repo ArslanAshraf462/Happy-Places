@@ -113,8 +113,8 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
                             etTitle.text.toString(),
                             saveImageToInternalStorage.toString(),
                             etDescription.text.toString(),
-                            etLocation.text.toString(),
                             etDate?.text.toString(),
+                            etLocation.text.toString(),
                             mLatitude,
                             mLongitude,
                         )

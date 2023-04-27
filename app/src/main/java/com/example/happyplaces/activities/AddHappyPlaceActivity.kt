@@ -41,7 +41,12 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
     private var saveImageToInternalStorage : Uri? = null
     private var mLatitude : Double = 0.0
     private var mLongitude : Double = 0.0
-    var etDate : EditText? = null
+    private var mHappyPlaceDetail : HappyPlaceModel? = null
+    private var etDate : EditText? = null
+    var etTitle : EditText? = null
+    var etDescription : EditText? = null
+    var etLocation : EditText? = null
+    private var ivPlaceImage : ImageView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +57,9 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
         toolbarAddPlace.setNavigationOnClickListener {
             onBackPressed()
         }
+        if(intent.hasExtra(MainActivity.EXTRA_PLACE_DETAIL)){
+            mHappyPlaceDetail = intent.getParcelableExtra(MainActivity.EXTRA_PLACE_DETAIL) as HappyPlaceModel?
+        }
 
         dateSetListener = DatePickerDialog.OnDateSetListener { view, year, month, dayOfMonth ->
             cal.set(Calendar.YEAR, year)
@@ -60,9 +68,31 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
             updateDateInView()
         }
         etDate  = findViewById(R.id.et_date)
+        etTitle = findViewById(R.id.et_title)
+        etDescription = findViewById(R.id.et_description)
+        etLocation = findViewById(R.id.et_location)
         val tvAddImage : TextView = findViewById(R.id.tv_add_image)
         val btnSave : Button = findViewById(R.id.btn_save)
         updateDateInView()
+
+        if(mHappyPlaceDetail != null){
+            supportActionBar?.title = "Edit Happy Place"
+
+            etTitle!!.setText(mHappyPlaceDetail!!.title)
+            etDescription!!.setText(mHappyPlaceDetail!!.description)
+            etDate!!.setText(mHappyPlaceDetail!!.date)
+            etLocation!!.setText(mHappyPlaceDetail!!.location)
+            mLatitude = mHappyPlaceDetail!!.latitude
+            mLongitude = mHappyPlaceDetail!!.longitude
+
+            saveImageToInternalStorage = Uri.parse(
+                mHappyPlaceDetail!!.image
+            )
+            ivPlaceImage = findViewById(R.id.iv_place_image)
+            ivPlaceImage!!.setImageURI(saveImageToInternalStorage)
+
+            btnSave.text = "UPDATE"
+        }
         etDate?.setOnClickListener(this)
         tvAddImage.setOnClickListener(this)
         btnSave.setOnClickListener(this)
@@ -186,7 +216,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        val ivPlaceImage : ImageView = findViewById(R.id.iv_place_image)
+         ivPlaceImage = findViewById(R.id.iv_place_image)
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == GALLERY) {
                 if (data != null) {
@@ -199,7 +229,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
                             MediaStore.Images.Media.getBitmap(this.contentResolver, contentURI)
                         saveImageToInternalStorage = saveImageToInternalStorage(selectedImageBitmap)
                         Log.e("Saved Image: ", "Path:: $saveImageToInternalStorage")
-                        ivPlaceImage.setImageBitmap(selectedImageBitmap) // Set the selected image from GALLERY to imageView.
+                        ivPlaceImage!!.setImageBitmap(selectedImageBitmap) // Set the selected image from GALLERY to imageView.
                     } catch (e: IOException) {
                         e.printStackTrace()
                         Toast.makeText(this@AddHappyPlaceActivity, "Failed!", Toast.LENGTH_SHORT).show()
@@ -213,7 +243,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
                  saveImageToInternalStorage = saveImageToInternalStorage(thumbnail)
                 Log.e("Saved Image: ", "Path:: $saveImageToInternalStorage")
 
-                ivPlaceImage.setImageBitmap(thumbnail) // Set to the imageView.
+                ivPlaceImage!!.setImageBitmap(thumbnail) // Set to the imageView.
             }
         } else if (resultCode == Activity.RESULT_CANCELED) {
             Log.e("Cancelled", "Cancelled")

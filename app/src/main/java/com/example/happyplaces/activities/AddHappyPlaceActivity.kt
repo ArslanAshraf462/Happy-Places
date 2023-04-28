@@ -27,6 +27,7 @@ import android.widget.Toast
 import com.example.happyplaces.R
 import com.example.happyplaces.database.DatabaseHandler
 import com.example.happyplaces.models.HappyPlaceModel
+import com.example.happyplaces.utils.GetAddressFromLatLng
 import com.google.android.gms.location.*
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
@@ -128,7 +129,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
     private fun requestNewLocationData(){
         var mLocationRequest = LocationRequest()
         mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        mLocationRequest.interval = 0
+        mLocationRequest.interval = 1000
         mLocationRequest.numUpdates = 1
 
         mFusedLocationClient.requestLocationUpdates(mLocationRequest,mLocationCallBack, Looper.myLooper())
@@ -141,6 +142,18 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
             Log.i("Current Latitude", "$mLatitude")
             mLongitude = mLastLocation.longitude
             Log.i("Current Longitude", "$mLongitude")
+
+            val addressTask = GetAddressFromLatLng( this@AddHappyPlaceActivity,mLatitude,mLongitude)
+            addressTask.setAddressListener(object : GetAddressFromLatLng.AddressListener{
+                override fun onAddressFound(address : String?){
+                    etLocation!!.setText(address)
+                }
+
+                override fun onError(){
+                    Log.e("Get Address:: ", "Something went wrong")
+                }
+            })
+            addressTask.getAddress()
         }
     }
 

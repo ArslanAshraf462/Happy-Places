@@ -1,5 +1,6 @@
 package com.example.happyplaces.activities
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
@@ -8,6 +9,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
+import android.location.LocationManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -51,6 +53,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
     var etDescription : EditText? = null
     var etLocation : EditText? = null
     private var ivPlaceImage : ImageView? = null
+    private var tvSelectCurrentLocation : TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,6 +83,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
         etTitle = findViewById(R.id.et_title)
         etDescription = findViewById(R.id.et_description)
         etLocation = findViewById(R.id.et_location)
+        tvSelectCurrentLocation = findViewById(R.id.tv_select_current_location)
         val tvAddImage : TextView = findViewById(R.id.tv_add_image)
         val btnSave : Button = findViewById(R.id.btn_save)
         updateDateInView()
@@ -106,6 +110,13 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
         tvAddImage.setOnClickListener(this)
         btnSave.setOnClickListener(this)
         etLocation!!.setOnClickListener(this)
+        tvSelectCurrentLocation!!.setOnClickListener(this)
+    }
+
+    private fun isLocationEnabled() : Boolean{
+        val locationManager : LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
     override fun onClick(v: View?) {
@@ -195,6 +206,40 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener{
                     startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE)
                 }catch (e:Exception){
                     e.printStackTrace()
+                }
+            }
+            R.id.tv_select_current_location -> {
+                if(!isLocationEnabled()){
+                    Toast.makeText(
+                        this,
+                        "Your location provider is turned off. Please turned it on.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    startActivity(intent)
+                }else{
+                    Dexter.withActivity(this).withPermissions(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ).withListener(object: MultiplePermissionsListener{
+                        override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                            if (report!!.areAllPermissionsGranted()){
+                                Toast.makeText(
+                                    this@AddHappyPlaceActivity,
+                                    "Location Permission is Granted.",
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
+                            }
+                        }
+
+                        override fun onPermissionRationaleShouldBeShown(
+                            permissions: MutableList<PermissionRequest>?,
+                            token: PermissionToken?
+                        ) {
+                            showRationalDialogForPermissions()
+                        }
+                    }).onSameThread().check()
                 }
             }
         }
